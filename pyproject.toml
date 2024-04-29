@@ -8,6 +8,7 @@ readme = "README.md"
 packages = [
     {include = "module_collecter"}
 ]
+homepage = "https://github.com/DinhHuy2010/module-collecter"
 
 [tool.poetry.dependencies]
 python = "^3.9"
