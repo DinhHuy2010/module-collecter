@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "module-collecter"
+version = "0.0.1"
+description = "Collect submodules from a package."
+authors = ["DinhHuy2010 <huy04052010@outlook.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    {include = "module_collecter"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+attrs = "^23.2.0"
+click = "^8.1.7"
+
+
+[tool.poetry.group.dev.dependencies]
+types-click = "^7.1.8"
+
+[tool.poetry.scripts]
+module-collecter = "module_collecter.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
