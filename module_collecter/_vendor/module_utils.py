@@ -12,12 +12,11 @@ from importlib.util import find_spec
 from pathlib import Path
 from types import ModuleType
 
-from typing_extensions import Any, Optional, TypeVar, deprecated
+from typing_extensions import Any, Optional, TypeAlias, TypeVar, Union, deprecated
 
 T = TypeVar("T")
 
-__all__: list[str]
-
+ModuleArgs: TypeAlias = Union[str, ModuleType, ModuleSpec]
 
 class ModuleLocationKind(Flag):
     NORMAL_BUILTIN = auto()
@@ -58,7 +57,7 @@ def _getmodname_from_source(src: Any) -> Optional[str]:
 
 
 def _get_module_name(  # noqa: PLR0911
-    name_or_mod: str | ModuleSpec | ModuleType,
+    name_or_mod: ModuleArgs,
     handle_main: bool = True,
     from_frame: bool = False,
 ) -> Optional[str]:
@@ -85,7 +84,7 @@ def _get_module_name(  # noqa: PLR0911
                 return None
 
 
-def _get_spec(obj: str | ModuleSpec | ModuleType) -> Optional[ModuleSpec]:
+def _get_spec(obj: ModuleArgs) -> Optional[ModuleSpec]:
     if isinstance(obj, ModuleSpec):
         spec = obj
     elif isinstance(obj, ModuleType):
@@ -121,7 +120,7 @@ def _path_startswith(a: Path, b: Path) -> bool:
     return a.parts[: len(b.parts)] == b.parts
 
 
-def _determine_entry(mf: str, sitepackages: set[Path]) -> ModuleLocationKind | None:  # noqa: PLR0911
+def _determine_entry(mf: str, sitepackages: set[Path]) -> Union[ModuleLocationKind, None]:  # noqa: PLR0911
     if mf == "frozen":
         return ModuleLocationKind.FROZEN
     try:
@@ -178,15 +177,15 @@ def get_python_nonlocal_lib_paths(
     return sorted(paths)
 
 
-def module_spec(name_or_mod: str | ModuleSpec | ModuleType) -> Optional[ModuleSpec]:
+def module_spec(name_or_mod: ModuleArgs) -> Optional[ModuleSpec]:
     return _get_spec(name_or_mod)
 
 
 def where_module_from(
-    name_or_mod: str | ModuleType | ModuleSpec,
+    name_or_mod: ModuleType,
     *,
     include_system_sitepackages: bool = False,
-) -> ModuleLocationKind | None:
+) -> Union[ModuleLocationKind, None]:
     spec = _get_spec(name_or_mod)
     if spec is None:
         return None
@@ -210,18 +209,18 @@ def where_module_from(
     return _push_cache(module_name, entry)
 
 
-def is_module_builtin(name_or_mod: str | ModuleType | ModuleSpec) -> bool:
+def is_module_builtin(name_or_mod: ModuleType) -> bool:
     wmf = where_module_from(name_or_mod)
     return wmf is not None and wmf in ModuleLocationKind.BUILTIN
 
 
-def is_module_local(name_or_mod: str | ModuleType | ModuleSpec) -> bool:
+def is_module_local(name_or_mod: ModuleType) -> bool:
     wmf = where_module_from(name_or_mod)
     return wmf is not None and wmf is ModuleLocationKind.LOCAL
 
 
 def get_module_name(
-    name_or_mod: Optional[str | ModuleSpec | ModuleType] = None,
+    name_or_mod: Optional[ModuleArgs] = None,
     *,
     handle_main: bool = True,
     default_module_name: str = _FALLBACK_DEFAULT_NAME,

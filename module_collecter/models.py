@@ -2,7 +2,7 @@ from importlib.machinery import ModuleSpec
 from pathlib import Path
 
 import attrs
-from typing_extensions import Optional
+from typing_extensions import Optional, Union
 
 
 @attrs.define(kw_only=True, frozen=True)
@@ -21,8 +21,8 @@ class ModuleInfo:
             spec=spec,
         )
 
+
 @attrs.define(kw_only=True)
 class ModuleCollecterResult:
-    origin: ModuleInfo | None
+    origin: Union[ModuleInfo, None]
     submodules: dict[str, ModuleInfo]
-

@@ -60,6 +60,7 @@ banned-api."typing".msg = "Use typing_extensions instead"
 
 [tool.pyright]
 # strict for absoulte clean code™
+pythonVersion = "3.9"
 typeCheckingMode = "strict"
 
 [tool.pytest.ini_options]

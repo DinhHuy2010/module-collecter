@@ -3,7 +3,7 @@ from contextlib import redirect_stdout
 from importlib.machinery import ModuleSpec
 from types import ModuleType
 
-from typing_extensions import Any
+from typing_extensions import Any, Optional, Union
 
 from module_collecter._vendor.module_utils import get_module_name, module_spec
 from module_collecter.models import ModuleCollecterResult, ModuleInfo
@@ -11,8 +11,8 @@ from module_collecter.scanner import EventVisitKind, visit_all_spec
 
 
 def _collect_submodules(
-    pkg: ModuleSpec | ModuleType | str, verbose: bool, level: int | None
-) -> tuple[ModuleInfo | None, dict[str, ModuleInfo]]:
+    pkg: Union[ModuleSpec, ModuleType, str], verbose: bool, level: Union[int, None]
+) -> tuple[Union[ModuleInfo, None], dict[str, ModuleInfo]]:
     submodules_count = 0
     submodules: dict[str, ModuleInfo] = {}
     spec = module_spec(pkg)
@@ -20,7 +20,7 @@ def _collect_submodules(
     if spec is None:
         return None, submodules
 
-    def _verbose_handler(event: EventVisitKind, data: dict[str, Any]) -> None: # prgama: no cover
+    def _verbose_handler(event: EventVisitKind, data: dict[str, Any]) -> None:  # prgama: no cover
         nonlocal submodules_count
         with redirect_stdout(sys.stderr):
             if event is EventVisitKind.START:
@@ -47,7 +47,7 @@ def _collect_submodules(
 
 
 def collect_modules(
-    pkg: ModuleType | ModuleSpec | str, /, *, verbose: bool = False, level: int | None = None
+    pkg: Union[ModuleType, ModuleSpec, str], /, *, verbose: bool = False, level: Optional[int] = None
 ) -> ModuleCollecterResult:
     """Given a module object or a module spec or a string, returns the its submodules."""
     root_spec, subspeces = _collect_submodules(pkg, verbose, level)
