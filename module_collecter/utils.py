@@ -6,9 +6,9 @@ from functools import partial
 from importlib.machinery import ModuleSpec
 from os import fsdecode
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator
 
 from more_itertools import iter_except
+from typing_extensions import TYPE_CHECKING, Iterator
 
 if TYPE_CHECKING:
     from _typeshed import StrOrBytesPath

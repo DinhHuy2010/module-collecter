@@ -11,9 +11,8 @@ from importlib.machinery import ModuleSpec
 from importlib.util import find_spec
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Optional, TypeVar
 
-from typing_extensions import deprecated
+from typing_extensions import Any, Optional, TypeVar, deprecated
 
 T = TypeVar("T")
 
@@ -39,7 +38,7 @@ _MODULE_LOCATION_KIND_CACHE: dict[str, ModuleLocationKind] = {}
 
 
 def _get_python_lib_folder_name() -> str:
-    if os.name == "nt":
+    if os.name == "nt":  # noqa: SIM108
         libdirname = "Lib"
     else:
         libdirname = f"lib/python{sys.version_info.major}.{sys.version_info.minor}"
@@ -58,7 +57,7 @@ def _getmodname_from_source(src: Any) -> Optional[str]:
     return inspect.getmodulename(fn)
 
 
-def _get_module_name(
+def _get_module_name(  # noqa: PLR0911
     name_or_mod: str | ModuleSpec | ModuleType,
     handle_main: bool = True,
     from_frame: bool = False,
@@ -122,7 +121,7 @@ def _path_startswith(a: Path, b: Path) -> bool:
     return a.parts[: len(b.parts)] == b.parts
 
 
-def _determine_entry(mf: str, sitepackages: set[Path]) -> ModuleLocationKind | None:
+def _determine_entry(mf: str, sitepackages: set[Path]) -> ModuleLocationKind | None:  # noqa: PLR0911
     if mf == "frozen":
         return ModuleLocationKind.FROZEN
     try:

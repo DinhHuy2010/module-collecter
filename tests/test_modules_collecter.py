@@ -13,8 +13,8 @@ EXPECTED_SUBMODULES = [
 
 def test_collect_modules():
     from tests.helper import some_package
-    from tests.helper.some_package import crkinge as c
-    from tests.helper.some_package import subpackage as more_subpackage
+    # from tests.helper.some_package import crkinge as c
+    # from tests.helper.some_package import subpackage as more_subpackage
     results = module_collecter.collect_modules(some_package)
-    assert results.origin is some_package
+    assert results.origin.fullname == some_package.__name__
     assert list(results.submodules) == EXPECTED_SUBMODULES
