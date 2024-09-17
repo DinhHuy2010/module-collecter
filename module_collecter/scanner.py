@@ -52,7 +52,7 @@ def visit_all_spec(
                 else:
                     verbose_callback(EventVisitKind.GOT_MODULE, {"name": name, "item": item})
                     yield ModuleInfo.from_spec(cspec)
-            elif item.is_dir():
+            elif item.is_dir() and item.stem != "__pycache__":
                 verbose_callback(EventVisitKind.GOT_PACKAGE, {"name": name, "item": item})
                 stacks.append(item)
     verbose_callback(EventVisitKind.FINISH, {"spec": spec})
