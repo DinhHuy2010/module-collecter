@@ -94,4 +94,5 @@ omit = [
     "module_collecter/cli.py",
     "module_collecter/__init__.py",
     "module_collecter/models.py",
+    "module_collecter/_vendor/*",
 ]
