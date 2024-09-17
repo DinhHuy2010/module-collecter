@@ -1,22 +1,24 @@
 from importlib import import_module
 
 import click
+from typing_extensions import Any
 
-from .core import collect_modules
+from module_collecter.core import collect_modules
 
 
 def print_names(root: str, names: tuple[str, ...]) -> None:
-    def print_tree(tree, level):
+    def print_tree(tree: dict[str, Any], level: int) -> None:
         prefix = f"{' ' * (level * 4)}- "
         for node, subnodes in tree.items():
             click.echo(prefix + node)
             print_tree(subnodes, level + 1)
 
     # {root: {name1: {name2: ... ... {name(n): None}}}}
-    def build_tree():
-        tree = {root: {}}
+    def build_tree() -> dict[str, Any]:
+        tree: dict[str, Any] = {root: {}}
+        root_len = len(root.split("."))
         for name in sorted(names):
-            *parts, last = name.split(".")[1:]
+            *parts, last = name.split(".")[root_len:]
             curr = tree[root]
             for p in parts:
                 curr = curr.setdefault(p, {})
