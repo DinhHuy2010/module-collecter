@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "module-collecter"
 version = "0.0.1"
@@ -5,23 +9,87 @@ description = "Collect submodules from a package."
 authors = ["DinhHuy2010 <huy04052010@outlook.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [
-    {include = "module_collecter"}
-]
+packages = [{ include = "module_collecter" }]
 homepage = "https://github.com/DinhHuy2010/module-collecter"
 
 [tool.poetry.dependencies]
 python = "^3.9"
 attrs = "^23.2.0"
 click = "^8.1.7"
+tox = "^4.18.1"
 
 
 [tool.poetry.group.dev.dependencies]
 types-click = "^7.1.8"
+ruff = "^0.6.5"
+pyright = "^1.1.380"
+pytest = "^8.3.3"
+coverage = "^7.6.1"
 
 [tool.poetry.scripts]
 module-collecter = "module_collecter.cli:main"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+cache-dir = ".cache/ruff"
+indent-width = 4          # Force 4 spaces per indentation level
+line-length = 120         # Set maximum line length to 100 characters
+
+[tool.ruff.lint]
+# List of error codes to ignore
+# Select specific classes of rules to apply
+select = ["E", "W", "F", "I", "B", "C4", "ARG", "SIM", "PTH", "PL", "TID"]
+ignore = [
+    "W291",    # Trailing whitespace
+    "E501",    # Line too long
+    "W293",    # Blank line contains whitespace
+    "PLR0912", # Too many branches
+    "PLR2004", # Magic values
+    "PLR0915", # Too many statements
+    "PLW0603", # Global statement
+    "PLR0913", # Too many arguments
+    "B010",    # setattr
+]
+
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+banned-api."typing".msg = "Use typing_extensions instead"
+
+[tool.pyright]
+# strict for absoulte clean code™
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+cache_dir = ".cache/pytest"
+addopts = "--verbose --import-mode importlib"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py39,py310,py311
+
+; [gh-actions]
+; python = 
+;     3.9: py39
+;     3.10: py310
+;     3.11: py311
+
+[testenv]
+description = "run lint and tests"
+allowlist_externals = poetry
+commands_pre =
+    poetry install --no-root --sync
+commands = 
+    poetry run ruff check module_collecter/
+    poetry run pyright module_collecter/
+    poetry run coverage run -m pytest
+    poetry run coverage report -m
+"""
+
+[tool.coverage.report]
+omit = [
+    "module_collecter/cli.py",
+    "module_collecter/__init__.py",
+    "module_collecter/models.py",
+]
