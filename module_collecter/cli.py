@@ -1,4 +1,7 @@
-from importlib import import_module
+import builtins
+from contextlib import contextmanager
+from functools import wraps
+from importlib.util import find_spec
 
 import click
 from typing_extensions import Any
@@ -30,6 +33,22 @@ def print_names(root: str, names: tuple[str, ...]) -> None:
     print_tree(tree, 0)
 
 
+@contextmanager
+def patch_print_for_echo():
+    original_print = builtins.print
+
+    @wraps(original_print)
+    def wrapper(*args: Any, **kwargs: Any):
+        out = kwargs.get("sep", " ").join(map(str, args))
+        click.echo(out, err=True)
+
+    setattr(builtins, "print", wrapper)
+    try:
+        yield
+    finally:
+        setattr(builtins, "print", original_print)
+
+
 @click.command()
 @click.argument("package")
 @click.option("-v", "--verbose", help="Give more output.", is_flag=True)
@@ -38,20 +57,27 @@ def main(package: str, verbose: bool):
     import the `PACKAGE`,
     then collect its submodules and report the results.
     """
-    click.echo(f"collecting submodules from package: {package!r}")
     if verbose:
-        click.echo(f"importing package: {package!r}")
+        click.echo(f"importing package: {package!r}", err=True)
     try:
-        module = import_module(package)
-    except ImportError as exc:
-        click.echo(f"import error from {package!r}: {exc}", err=True)
+        module_spec = find_spec(package)
+    except ValueError as exc:
+        click.echo(f"error on finding spec from {package!r}: {exc}", err=True)
         return
-    resp = collect_modules(module, verbose=verbose)
+    if module_spec is None:
+        click.echo(f"{package!r} not found", err=True)
+        return
+    if verbose:
+        click.echo(f"collecting submodules from package: {package!r}", err=True)
+    with patch_print_for_echo():
+        resp = collect_modules(module_spec, verbose=verbose)
+    origin = resp.origin
+    assert origin is not None
     if resp.submodules:
-        click.echo(f"list of accessible submodules from {resp.origin.__name__!r}:")
-        print_names(resp.origin.__name__, tuple(resp.submodules))
+        click.echo(f"list of accessible submodules from {origin.fullname!r}:")
+        print_names(origin.fullname, tuple(resp.submodules))
     else:
-        click.echo(f"no submodules found from {resp.origin.__name__}")
+        click.echo(f"no submodules found from {origin.fullname}")
 
 
 if __name__ == "__main__":
