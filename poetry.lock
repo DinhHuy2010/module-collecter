@@ -353,6 +353,17 @@ files = [
 ]
 
 [[package]]
+name = "sty"
+version = "1.0.6"
+description = "String styling for your terminal"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "sty-1.0.6-py3-none-any.whl", hash = "sha256:2b1eba187b3961644f797f97177f939c109c916d3d3a2cb6784454d1f1ce4983"},
+    {file = "sty-1.0.6.tar.gz", hash = "sha256:d43ecb71b7bad0b56d622cb219d0be303c16fcb4143b84d1465ded22e29baa00"},
+]
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -435,4 +446,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f773a0395f6fd8fefd6e46cf187de80dd503b1edc90927228d136d85b7eda609"
+content-hash = "102f6dcdb677081e1c1b71158a2405576854b6681284b16c6ab081004989a0e0"

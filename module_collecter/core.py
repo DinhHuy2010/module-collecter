@@ -5,7 +5,7 @@ from types import ModuleType
 
 from typing_extensions import Any, Optional, Union
 
-from module_collecter._vendor.module_utils import get_module_name, module_spec
+from module_collecter._vendor.module_utils import module_spec
 from module_collecter.models import ModuleCollecterResult, ModuleInfo
 from module_collecter.scanner import EventVisitKind, visit_all_spec
 
@@ -16,7 +16,6 @@ def _collect_submodules(
     submodules_count = 0
     submodules: dict[str, ModuleInfo] = {}
     spec = module_spec(pkg)
-    rname = get_module_name(spec)
     if spec is None:
         return None, submodules
 
@@ -42,7 +41,7 @@ def _collect_submodules(
 
     for info in visit_all_spec(spec, level=level, verbose_callback=(_verbose_handler if verbose is True else None)):
         submodules[info.fullname] = info
-    root_module_info = submodules.pop(rname)
+    root_module_info = ModuleInfo.from_spec(spec)
     return root_module_info, submodules
 
 
