@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "module-collecter"
-version = "0.0.1"
+version = "0.1.0"
 description = "Collect submodules from a package."
 authors = ["DinhHuy2010 <huy04052010@outlook.com>"]
 license = "MIT"
