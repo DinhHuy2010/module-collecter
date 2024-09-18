@@ -15,12 +15,13 @@ homepage = "https://github.com/DinhHuy2010/module-collecter"
 [tool.poetry.dependencies]
 python = "^3.9"
 attrs = "^23.2.0"
-click = "^8.1.7"
 typing-extensions = "^4.12.2"
 more-itertools = "^10.5.0"
+
+[tool.poetry.group.cli.dependencies]
+click = "^8.1.7"
 sty = "^1.0.6"
 colorama = "^0.4.6"
-
 
 [tool.poetry.group.dev.dependencies]
 types-click = "^7.1.8"
