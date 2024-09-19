@@ -14,11 +14,14 @@ from module_collecter.core import collect_modules
 
 _echo = None
 _echo_via_pager = None
+_ef = sty.EfRegister()
+_fg = sty.FgRegister()
+_rs = sty.RsRegister()
 
 
-def print_names(root: str, names: tuple[str, ...]) -> None:
+def print_names(root: str, names: tuple[str, ...], no_pretty: bool, no_color: bool) -> None:
     def render_pretty() -> Iterable[str]:
-        yield f"List of accessible submodules from {sty.ef.bold}{sty.fg.green}{root}{sty.rs.all}:\n"
+        yield f"List of accessible submodules from {_ef.bold}{_fg.green}{root}{_rs.all}:\n"
         sorted_names = sorted(names)
         for _, is_last, item in more_itertools.mark_ends(sorted_names):
             if item == root:
@@ -28,12 +31,28 @@ def print_names(root: str, names: tuple[str, ...]) -> None:
                 parts = item[len(root) :].split(".")
                 indent_level = len(parts) - 1
                 entry = parts[-1]
-            yield f"{' ' * (indent_level * 4)}{sty.ef.bold}- {sty.fg.blue}{entry}{sty.rs.all}"
+            yield f"{' ' * (indent_level * 4)}{_ef.bold}- {_fg.blue}{entry}{_rs.all}"
             if not is_last:
                 yield "\n"
 
-    if _echo_via_pager:
-        _echo_via_pager(render_pretty())
+    def render_no_pretty() -> Iterable[str]:
+        yield f"List of accessible submodules from {root}:\n"
+        sorted_names = sorted(names)
+        for _, is_last, item in more_itertools.mark_ends(sorted_names):
+            yield item
+            if not is_last:
+                yield "\n"
+
+    render = render_no_pretty if no_pretty else render_pretty
+    if no_color:
+        sty.mute(_ef, _fg, _rs)
+
+    try:
+        if _echo_via_pager:
+            _echo_via_pager(render())
+    finally:
+        if no_color:
+            sty.unmute(_ef, _fg, _rs)
 
 
 @contextmanager
@@ -53,7 +72,7 @@ def patch_print_for_echo():
         setattr(builtins, "print", original_print)
 
 
-def _actual_main(package: str, verbose: bool):
+def _actual_main(package: str, verbose: bool, no_pretty: bool, no_color: bool):
     assert _echo is not None and _echo_via_pager is not None
     if verbose:
         _echo(f"importing package: {package!r}", err=True)
@@ -72,7 +91,7 @@ def _actual_main(package: str, verbose: bool):
     origin = resp.origin
     assert origin is not None
     if resp.submodules:
-        print_names(origin.fullname, tuple(resp.submodules))
+        print_names(origin.fullname, tuple(resp.submodules), no_pretty, no_color)
     else:
         _echo(f"No submodules found from {origin.fullname}")
 
@@ -82,7 +101,8 @@ def _actual_main(package: str, verbose: bool):
 @click.option("-v", "--verbose", help="Give more output.", is_flag=True)
 @click.option("--no-color", help="No color output", is_flag=True)
 @click.option("--no-pager", help="No pager", is_flag=True)
-def main(package: str, verbose: bool, no_color: bool, no_pager: bool):
+@click.option("--no-pretty", help="No pretty output", is_flag=True)
+def main(package: str, verbose: bool, no_color: bool, no_pager: bool, no_pretty: bool):
     """
     import the `PACKAGE`,
     then collect its submodules and report the results.
@@ -90,11 +110,11 @@ def main(package: str, verbose: bool, no_color: bool, no_pager: bool):
     global _echo, _echo_via_pager
     if no_pager:
         os.environ["TERM"] = "dumb"
-    color = not (no_color or bool(os.environ.get("NO_COLOR")))
+    color = not (no_color or bool(os.environ.get("NO_COLOR"))) or not no_pretty
     _echo = partial(click.echo, color=color)
     _echo_via_pager = partial(click.echo_via_pager, color=color)
     with colorama.colorama_text(convert=color, strip=not color):
-        _actual_main(package, verbose)
+        _actual_main(package, verbose, no_pretty, no_color)
 
 
 if __name__ == "__main__":
