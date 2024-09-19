@@ -3,13 +3,8 @@ try:
 except ImportError:
 
     def main() -> None:
-        from textwrap import dedent
-
-        print(
-            dedent("""NOTE: The CLI part is not installed.
-            Install the CLI via: pip install module-collecter[cli]
-            """)
-        )
+        print("NOTE: The CLI part is not installed.")
+        print("Install the CLI via: pip install module-collecter[cli]")
 
 
 if __name__ == "__main__":
