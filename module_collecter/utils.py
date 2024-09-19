@@ -7,7 +7,7 @@ from importlib.machinery import ModuleSpec
 from os import fsdecode
 from pathlib import Path
 
-from more_itertools import iter_except
+from more_itertools import always_iterable, iter_except
 from typing_extensions import TYPE_CHECKING, Iterator
 
 if TYPE_CHECKING:
@@ -15,8 +15,10 @@ if TYPE_CHECKING:
 
 
 def contruct_name(root_spec: ModuleSpec, path: Path) -> str:
-    assert root_spec.origin is not None
-    pparts = Path(root_spec.origin).parent.parts
+    if root_spec.origin is not None:
+        pparts = Path(root_spec.origin).parent.parts
+    else:
+        pparts = Path(next(always_iterable(root_spec.submodule_search_locations))).parts
     parts = [root_spec.name]
     parts.extend(path.parts[len(pparts) : -1])
     if path.stem != "__init__":

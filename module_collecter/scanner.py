@@ -33,27 +33,42 @@ def visit_all_spec(
     verbose_callback: Callable[[EventVisitKind, dict[str, Any]], object] | None = None,
 ) -> Generator[ModuleInfo, None, None]:
     def _verbose_callback(event: EventVisitKind, data: dict[str, Any]) -> None: ...
+    def is_vaild_level(level: int | None, name: str) -> bool:
+        return level is None or len(name[len(spec.name) :].split(".")) - 1 <= level
 
     if verbose_callback is None:
         verbose_callback = _verbose_callback
         del _verbose_callback
     verbose_callback(EventVisitKind.START, {"spec": spec})
     stacks = deque([Path(ssp) for ssp in always_iterable(spec.submodule_search_locations)])
+    visited: set[str] = set()
     while stacks:
-        p = stacks.popleft()
-        for item in _safe_iterdir(p):
+        current = stacks.popleft()
+        pkg_init_file = current.joinpath("__init__.py")
+        if pkg_init_file.is_file():
+            name = _contruct_name(spec, pkg_init_file)
+            if not is_vaild_level(level, name) or name in visited:
+                continue
+
+            cspec = spec_from_file_location(name, pkg_init_file)
+            if cspec is not None:
+                verbose_callback(EventVisitKind.GOT_PACKAGE, {"name": name, "item": current})
+                yield ModuleInfo.from_spec(cspec)
+            else:
+                verbose_callback(EventVisitKind.NOT_FOUND, {"name": name, "item": current})
+            visited.add(name)
+
+        for item in _safe_iterdir(current):
             name = _contruct_name(spec, item)
-            if item.is_file() and item.suffix == ".py":
-                if level is not None and len(name.split(".")) - 1 > level:
-                    continue
+            if item.is_file() and item.suffix == ".py" and name not in visited and is_vaild_level(level, name):
                 cspec = spec_from_file_location(name, item)
-                if cspec is None:
-                    verbose_callback(EventVisitKind.NOT_FOUND, {"name": name, "item": item})
-                else:
+                if cspec is not None:
                     verbose_callback(EventVisitKind.GOT_MODULE, {"name": name, "item": item})
                     yield ModuleInfo.from_spec(cspec)
+                else:
+                    verbose_callback(EventVisitKind.NOT_FOUND, {"name": name, "item": item})
+                visited.add(name)
             elif item.is_dir() and item.stem != "__pycache__":
-                verbose_callback(EventVisitKind.GOT_PACKAGE, {"name": name, "item": item})
                 stacks.append(item)
     verbose_callback(EventVisitKind.FINISH, {"spec": spec})
 
